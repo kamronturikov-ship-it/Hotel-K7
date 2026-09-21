@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { bookingRequestSchema } from "@/lib/validations/booking";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 function guestsLabel(count: number) {
   const mod10 = count % 10;
@@ -24,6 +25,19 @@ export async function POST(req: Request) {
     }
 
     const { checkIn, checkOut, guests } = parsed.data;
+
+    // Notify administrator in Telegram (non-blocking failure)
+    try {
+      const tgText = [
+        `🛎 <b>Новое бронирование (Vespera)</b>\n`,
+        `📅 <b>Даты:</b> ${checkIn} → ${checkOut}`,
+        `👥 <b>Гости:</b> ${guestsLabel(guests)}`,
+        `⏱ <i>Время: ${new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })} (МСК)</i>`,
+      ].join("\n");
+      await sendTelegramMessage(tgText);
+    } catch (e) {
+      console.error("Failed to notify Telegram on booking:", e);
+    }
 
     return NextResponse.json({
       ok: true,

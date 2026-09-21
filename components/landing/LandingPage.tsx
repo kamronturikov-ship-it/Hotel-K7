@@ -2,6 +2,7 @@
 
 import { CustomCursor } from "@/components/landing/CustomCursor";
 import { ClosingCta } from "@/components/landing/ClosingCta";
+import { Feedback } from "@/components/landing/Feedback";
 import { Dining } from "@/components/landing/Dining";
 import { Experience } from "@/components/landing/Experience";
 import { Faq } from "@/components/landing/Faq";
@@ -31,6 +32,7 @@ export function LandingPage() {
         <Gallery />
         <Experience />
         <Testimonials />
+        <Feedback />
         <Location />
         <Faq />
         <ClosingCta />

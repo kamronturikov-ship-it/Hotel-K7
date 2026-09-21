@@ -10,6 +10,7 @@ const links = [
   { href: "/#dining", label: "Кухня" },
   { href: "/#gallery", label: "Галерея" },
   { href: "/#experience", label: "Философия" },
+  { href: "/#feedback", label: "Связь" },
   { href: "/#contact", label: "Контакты" },
 ];
 
