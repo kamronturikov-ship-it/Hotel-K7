@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { saveFeedbackToCRM } from "@/lib/crm";
 
 const feedbackSchema = z.object({
   name: z.string().trim().min(2, "Укажите имя (минимум 2 символа)").max(80),
@@ -43,6 +44,19 @@ export async function POST(req: Request) {
 
     const sent = await sendTelegramMessage(telegramText);
 
+    // Также записываем в CRM (hotel-one-woad.vercel.app / Turso)
+    try {
+      await saveFeedbackToCRM({
+        name,
+        contact,
+        subject,
+        message,
+        source: "hotel_website_feedback",
+      });
+    } catch (crmError) {
+      console.error("Failed to sync lead to CRM:", crmError);
+    }
+
     if (!sent) {
       return NextResponse.json(
         {
@@ -54,7 +68,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      message: "Спасибо! Ваше сообщение отправлено прямо нашему администратору в Telegram. Мы свяжемся с вами в ближайшее время.",
+      message: "Спасибо! Ваше сообщение отправлено прямо нашему администратору в Telegram и зафиксировано в CRM. Мы свяжемся с вами в ближайшее время.",
     });
   } catch (error) {
     console.error("Feedback API error:", error);

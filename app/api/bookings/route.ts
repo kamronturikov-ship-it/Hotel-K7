@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { bookingRequestSchema } from "@/lib/validations/booking";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { saveFeedbackToCRM } from "@/lib/crm";
 
 function guestsLabel(count: number) {
   const mod10 = count % 10;
@@ -37,6 +38,19 @@ export async function POST(req: Request) {
       await sendTelegramMessage(tgText);
     } catch (e) {
       console.error("Failed to notify Telegram on booking:", e);
+    }
+
+    // Также фиксируем в CRM
+    try {
+      await saveFeedbackToCRM({
+        name: parsed.data.guestName || "Гость сайта",
+        contact: parsed.data.phone || parsed.data.email || "Не указан (форма быстрой брони)",
+        subject: `Бронь: ${checkIn} → ${checkOut} (${guestsLabel(guests)})`,
+        message: `Запрос бронирования на даты с ${checkIn} по ${checkOut}. Количество гостей: ${guests}.`,
+        source: "booking_form",
+      });
+    } catch (crmErr) {
+      console.error("Failed to save booking to CRM:", crmErr);
     }
 
     return NextResponse.json({
